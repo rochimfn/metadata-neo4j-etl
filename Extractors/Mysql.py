@@ -13,7 +13,7 @@ class Mysql:
         self.__cursor = self.__driver.cursor(dictionary=True)
 
     def get(self):
-        self.query = '''
+        self.__query = '''
             select 
                 scsim.name as sc_sim,
                 scdb.name as sc_db,
@@ -41,7 +41,7 @@ class Mysql:
             inner join `database` scdb on dm.database_source_id=scdb.database_id
             inner join `table` sctbl on dm.table_source_id=sctbl.table_id
             inner join `sim` dtsim on dm.sim_destination_id=dtsim.sim_id
-            inner join `database` dtdb on dm.database_source_id=dtdb.database_id
+            inner join `database` dtdb on dm.database_destination_id=dtdb.database_id
             inner join `table` dttbl on dm.table_destination_id=dttbl.table_id
             inner join `table_type` scttype on sctbl.table_type_id=scttype.table_type_id
             inner join `table_type` dttype on dttbl.table_type_id=dttype.table_type_id
@@ -49,7 +49,7 @@ class Mysql:
             inner join `table_column` sccol on dcmap.source_column_id=sccol.table_column_id
             inner join `table_column` dtcol on dcmap.source_column_id=dtcol.table_column_id
         '''
-        self.__cursor.execute(self.query)
+        self.__cursor.execute(self.__query)
         return self.__cursor.fetchall()
 
     def close(self):

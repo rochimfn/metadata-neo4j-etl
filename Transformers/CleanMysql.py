@@ -1,27 +1,27 @@
 class CleanMysql:
     def __init__(self):
         # asumsi : database selalu dan harus memiliki relasi ke sim
-        self.source_map_with_schema = '''
+        self.__srcmap_wschema = '''
             MERGE(sc_sim: SIM {name: $sc_sim})
             MERGE(sc_db: Database {name: $sc_db})-[:DIMILIKI_OLEH]->(sc_sim)
             MERGE(sc_sch: Skema {name: $sc_sch})-[:DIMILIKI_OLEH]->(sc_db)
             MERGE(sc_tbl: Tabel {name: $sc_tbl})-[:DIMILIKI_OLEH]->(sc_sch)
             MERGE(sc_col: Kolom {name: $sc_col})-[:DIMILIKI_OLEH]->(sc_tbl)
             '''
-        self.source_map_without_schema = '''
+        self.__srcmap_woschema = '''
             MERGE(sc_sim: SIM {name: $sc_sim})
             MERGE(sc_db: Database {name: $sc_db})-[:DIMILIKI_OLEH]->(sc_sim)
             MERGE (sc_tbl:Tabel {name: $sc_tbl})-[:DIMILIKI_OLEH]->(sc_db)
             MERGE (sc_col:Kolom {name: $sc_col})-[:DIMILIKI_OLEH]->(sc_tbl)
             '''
-        self.destination_map_with_schema = '''
+        self.__dstmap_wschema = '''
             MERGE(dt_sim: SIM {name: $dt_sim})
             MERGE(dt_db: Database {name: $dt_db})-[:DIMILIKI_OLEH]->(dt_sim)
             MERGE (dt_sch:Skema {name: $sc_sch})-[:DIMILIKI_OLEH]->(dt_db)
             MERGE (dt_tbl:Tabel {name: $dt_tbl})-[:DIMILIKI_OLEH]->(dt_sch)
             MERGE (dt_col:Kolom {name: $dt_col})-[:DIMILIKI_OLEH]->(dt_tbl)
             '''
-        self.destination_map_without_schema = '''
+        self.__dstmap_woschema = '''
             MERGE(dt_sim: SIM {name: $dt_sim})
             MERGE(dt_db: Database {name: $dt_db})-[:DIMILIKI_OLEH]->(dt_sim)
             MERGE (dt_tbl:Tabel {name: $dt_tbl})-[:DIMILIKI_OLEH]->(dt_db)
@@ -40,13 +40,16 @@ class CleanMysql:
         '''
 
     def clean(self, raw_data):
+        # Bukan pendekatan terbaik
+        # Terlalu banyak meload string ke memory
+        # Potensi terjadi overload memory jika data sangat banyak(?)
         self.__clean_data = []
         for data in raw_data:
             query = ''
-            query += self.source_map_without_schema if (
-                data['sc_sch'] is None) else self.source_map_with_schema
-            query += self.destination_map_without_schema if (
-                data['dt_sch'] is None) else self.destination_map_with_schema
+            query += self.__srcmap_woschema if (
+                data['sc_sch'] is None) else self.__srcmap_wschema
+            query += self.__dstmap_woschema if (
+                data['dt_sch'] is None) else self.__dstmap_wschema
             query += self.relation
             self.__clean_data.append({"query": query, "data": {
                 "sc_sim": data['sc_sim'],
