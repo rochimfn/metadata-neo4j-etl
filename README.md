@@ -40,6 +40,8 @@ Buat dahulu virtual environmentsnya
 ```bash
 virtualenv3 venv
 # atau
+python3 -m venv venv
+# atau
 python3 -m virtualenv venv
 ```
 
