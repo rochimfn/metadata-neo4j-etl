@@ -1,11 +1,11 @@
 import sys
 from os import environ
-from settings import setup
+from settings import setup, clean
 from Extractors import Mysql
 from Transformers import CleanMysql
 from Loaders import Neo4j
-from mysql.connector.errors import InterfaceError
-from neo4j.exceptions import ServiceUnavailable
+from mysql.connector.errors import InterfaceError, ProgrammingError
+from neo4j.exceptions import ServiceUnavailable, AuthError
 
 
 def extract(mysql_connection):
@@ -56,10 +56,14 @@ if __name__ == '__main__':
         )
     except KeyError:
         handleError(['Enrivorment variable (.env) gagal diakses'])
+    except ProgrammingError:
+        handleError(["Terjadi kesalahan:", sys.exc_info()[0], 'Pastikan kredensial mysql (.env) benar'])
     except InterfaceError:
         handleError(['Koneksi ke server mysql gagal'])
     except ServiceUnavailable:
-        handleError(['Koneksi ke server neo4j gagal'])
+        handleError(['Koneksi ke server neo4j gagal', 'Pastikan server neo4j berjalan'])
+    except AuthError:
+        handleError(['Gagal tersambung ke neo4j', 'Pastikan kredensial neo4j (.env) benar'])
     except:
         handleError(["Terjadi kesalahan:", sys.exc_info()[0]])
 
@@ -68,3 +72,5 @@ if __name__ == '__main__':
     success = loading(neo4j, clean_data)
 
     print('Operasi Berhasil!') if success else print('Operasi Gagal!')
+
+    clean()
