@@ -1,12 +1,12 @@
 import sys
 from os import environ
-from settings import setup, clean
+from settings import setup, clean, eprint, oprint
 from Extractors import Mysql
 from Transformers import CleanMysql
 from Loaders import Neo4j
 from mysql.connector.errors import InterfaceError, ProgrammingError
 from neo4j.exceptions import ServiceUnavailable, AuthError
-
+from pprint import pprint
 
 def extract(mysql_connection):
     results = mysql_connection.get()
@@ -30,8 +30,8 @@ def loading(neo4j_connection, clean_data):
 
 def handleError(errors):
     for e in errors:
-        print(e)
-    print('Operasi dihentikan')
+        eprint(e)
+    oprint('Operasi dihentikan')
     sys.exit(1)
 
 
@@ -41,6 +41,7 @@ if __name__ == '__main__':
 
     # Setup koneksi ke mysql dan neo4j berdasarkan environment variables
     try:
+        oprint('Menghubungkan ke MySQL')
         mysql = Mysql(
             host=environ['MYSQL_HOST'],
             port=environ['MYSQL_PORT'],
@@ -48,12 +49,15 @@ if __name__ == '__main__':
             password=environ['MYSQL_PASSWORD'],
             database=environ['MYSQL_DATABASE']
         )
+        oprint('MySQL Terhubung')
+        oprint('Menghubungkan ke Neo4j')
         neo4j = Neo4j(
             host=environ['NEO4J_HOST'],
             port=environ['NEO4J_PORT'],
             username=environ['NEO4J_USER'],
             password=environ['NEO4J_PASSWORD']
         )
+        oprint('Neo4j Terhubung')
     except KeyError:
         handleError(['Enrivorment variable (.env) gagal diakses'])
     except ProgrammingError:
@@ -67,10 +71,12 @@ if __name__ == '__main__':
     except:
         handleError(["Terjadi kesalahan:", sys.exc_info()[0]])
 
+    oprint('Mengambil data dari MySQL')
     raw_data = extract(mysql)
+    oprint('Mengolah data dari MySQL')
     clean_data = transform(raw_data)
+    oprint('Menyimpan data olahan ke Neo4j')
     success = loading(neo4j, clean_data)
 
-    print('Operasi Berhasil!') if success else print('Operasi Gagal!')
-
+    oprint('Operasi Berhasil!') if success else oprint('Operasi Gagal!')
     clean()

@@ -1,11 +1,18 @@
 import os
-from pathlib import Path
 import sys
+from datetime import datetime
+from pathlib import Path
+
+def eprint(text):
+    print(f'[{datetime.now().strftime("%d/%m/%Y %H:%M:%S")}][ERR] {text}', file=sys.stderr)
+
+def oprint(text):
+    print(f'[{datetime.now().strftime("%d/%m/%Y %H:%M:%S")}][OUT] {text}', file=sys.stdout)
 
 def check():
 	if not os.path.exists(Path(os.path.dirname(os.path.realpath(__file__))) / '.env'):
-		print('Berkas .env tidak ditemukan')
-		print('Operasi dihentikan')
+		eprint('Berkas .env tidak ditemukan')
+		oprint('Operasi dihentikan')
 		sys.exit(1)
 
 def setup():
